@@ -1,0 +1,219 @@
+<?php
+session_start();
+if (isset($_SESSION['file_userid'])) {
+date_default_timezone_set("Asia/Bangkok");
+require 'connect.php';
+$docid = "";
+if (isset($_POST['docid'])) {
+    $docid = $_POST['docid'];
+}
+
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reject File</title>
+    <link rel="stylesheet" href="//cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <?php require 'nav.php';
+    ?>
+    <div style="padding-top: 45px;">
+    <div id="mySidenav" class="sidenav">
+            <label style="font-family: 'Trebuchet MS';padding:10px 5px 10px 20px">Main Menu</label>
+            <a class="btns" href="index.php">ສ້າງເອກະສານ</a>
+            <a class="btns" href="managefile.php">ຈັດການເອກະສານ</a>
+            <a class="btns" href="adminsearchfile.php">ຄົ້ນຫາເອກະສານ</a>
+            <a class="btns active" href="reject.php">ເອກະສານທີ່ຍົກເລີກ</a>
+        </div>
+        <div id="main" class="contents">
+            <div class="container">
+                <div class="mt-3"><span class="px-2 fs-6" style="border-left:6px solid #da0b0b;font-weight:600;">File Reject</span></div>
+                <h>
+                    <div class="mt-3">
+                        <form name="myForm" action="" method="post" onsubmit="return checkform()">
+                            <input name="docid" type="text" class="mytxt" placeholder="ເລກທີ-ຂໍ້ມູນເອກະສານ" value="<?php echo $docid ?>">
+                            <button type='submit' class="mybtn"><i class="fa-solid fa-magnifying-glass-plus"></i> ຄົ້ນຫາ</button>
+                            <a href="" class="text-danger ms-1 fs-5"><i class="fa-solid fa-rotate"></i></a>
+                        </form>
+                    </div>
+                    <hr>
+                    <!---->
+                    <div class="my-3" style="font-weight:600;">ຂໍ້ມູນເອກະສານ</div>
+                    <?php
+                    if (isset($_POST['docid'])) {
+                        $docid = $_POST['docid'];
+                        if ($docid == "") {
+                        } else {
+                           // $sql = "SELECT * FROM tbtracking WHERE docid LIKE '%$docid%' OR title LIKE '%$docid%' OR detail LIKE '%$docid%' AND status='Reject' ORDER BY trackid desc";
+                            $sql= "SELECT tbtracking.docid,tbtrackstatus.date,tbtracking.title,tbtrackstatus.detail,tbtracking.admin,tbtracking.status FROM `tbtracking` INNER JOIN tbtrackstatus ON tbtracking.docid = tbtrackstatus.docid WHERE tbtracking.status = 'Reject' AND tbtracking.docid LIKE '%$docid%' OR tbtracking.title LIKE '%$docid%' OR tbtrackstatus.detail LIKE '%$docid%' LIMIT 150";
+                            $result = mysqli_query($con, $sql);
+                            $count = mysqli_num_rows($result);
+                            if ($count > 0) {
+                    ?>
+                                <div class="table-responsive-xxl">
+                                <table id="myTable" class="table table-hover" style="width:100%;">
+                                        <thead>
+                                            <tr style="font-weight:600;">
+                                                <td>ເລກທີ</td>
+                                                <td>ວັນທີຍົກເລີກຂໍ້ມູນ</td>
+                                                <td>ຫົວຂໍ້</td>
+                                                <td>ລາຍລະອຽດ</td>
+                                                <td>ຜູ້ສ້າງຂໍ້ມູນ</td>
+                                                <td>ສະຖານະ</td>
+                                                <td class="text-center">ສະແດງ</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody style="border: 1px solid #e0e0e0;">
+                                            <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                                                <tr class="table-danger">
+                                                    <td>
+                                                        <div style="width:180px;overflow:hidden;"><a href="followtrack.php?docid=<?php echo $row['docid']; ?>" class="text-primary"><?php echo $row["docid"]; ?></a></div>
+                                                    </td>
+                                                    <td>
+                                                        <div style="width:140px;overflow:hidden;"><?php echo$newdt= date("d/m/Y H:i:s", strtotime($row["date"])); ?></div>
+                                                    </td>
+                                                    <td>
+                                                        <div style="width:220px;overflow:hidden;"><?php echo $row["title"]; ?></div>
+                                                    </td>
+                                                    <td>
+                                                        <div style="width:250px;overflow:hidden;"><?php echo $row["detail"]; ?></div>
+                                                    </td>
+                                                    <td>
+                                                        <div style="width:150px;overflow:hidden;"><?php echo $row["admin"]; ?></div>
+                                                    </td>
+                                                    <td>
+                                                        <div style="width:50px;overflow:hidden;"><?php echo $row["status"]; ?></div>
+                                                    </td>
+                                                    <td class="text-center text-danger fs-6"><a href="followtrack.php?docid=<?php echo $row['docid']; ?>" class="text-primary"><i class="fa-solid fa-eye"></i></a></td>
+                                                </tr>
+                                            <?php } ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                            <?php
+                            } else {
+                            ?>
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    ບໍ່ມີຂໍ້ມູນ
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="window.location = 'managefile.php'"></button>
+                                </div>
+                                <script>
+                                    $(document).ready(function() {
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Oops...',
+                                            text: 'Something went wrong!',
+                                            footer: '<a href="">Why do I have this issue?</a>'
+                                        })
+                                    });
+                                </script>
+                            <?php
+                            }
+                        }
+                    } else {
+                        $sql = "SELECT tbtracking.docid,tbtrackstatus.date,tbtracking.title,tbtrackstatus.detail,tbtracking.admin,tbtracking.status FROM `tbtracking` INNER JOIN tbtrackstatus ON tbtracking.docid = tbtrackstatus.docid WHERE tbtracking.status = 'Reject' LIMIT 150";
+                        $result = mysqli_query($con, $sql);
+                        $count = mysqli_num_rows($result);
+                        if ($count > 0) {
+                            ?>
+
+                            <div class="table-responsive-xxl">
+                            <table id="myTable" class="table table-hover" style="width:100%;">
+                                    <thead>
+                                        <tr style="font-weight:600;">
+                                            <td>ເລກທີ</td>
+                                            <td>ວັນທີຍົກເລີກຂໍ້ມູນ</td>
+                                            <td>ຫົວຂໍ້</td>
+                                            <td>ລາຍລະອຽດ</td>
+                                            <td>ຜູ້ສ້າງຂໍ້ມູນ</td>
+                                            <td>ສະຖານະ</td>
+                                            <td class="text-center">ສະແດງ</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody style="border: 1px solid #e0e0e0;">
+                                        <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+                                            <tr class="table-danger">
+                                                <td>
+                                                    <div style="width:180px;overflow:hidden;"><a href="followtrack.php?docid=<?php echo $row['docid']; ?>" class="text-primary"><?php echo $row["docid"]; ?></a></div>
+                                                </td>
+                                                <td>
+                                                    <div style="width:140px;overflow:hidden;"><?php echo $newdt= date("d/m/Y H:i:s", strtotime($row["date"])); ?></div>
+                                                </td>
+                                                <td>
+                                                    <div style="width:220px;overflow:hidden;"><?php echo $row["title"]; ?></div>
+                                                </td>
+                                                <td>
+                                                    <div style="width:250px;overflow:hidden;"><?php echo $row["detail"]; ?></div>
+                                                </td>
+                                                <td>
+                                                    <div style="width:150px;overflow:hidden;"><?php echo $row["admin"]; ?></div>
+                                                </td>
+                                                <td>
+                                                    <div style="width:50px;overflow:hidden;"><?php echo $row["status"]; ?></div>
+                                                </td>
+                                                <td class="text-center text-danger fs-6"><a href="followtrack.php?docid=<?php echo $row['docid']; ?>" class="text-primary"><i class="fa-solid fa-eye"></i></a></td>
+                                            </tr>
+                                        <?php } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                    <?php
+                        }else{
+                            ?>
+                                <div class="alert alert-danger">ບໍ່ມີຂໍ້ມູນເອກະສານທີ່ຍົກເລີກ</div>
+                            <?php
+                        }
+                    }
+                    ?>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="//cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#myTable').DataTable({
+                "order": [[1, "desc" ]]
+            });
+        });
+    </script>
+    <script>
+        flatpickr("#dt", {
+            dateFormat: "d/m/Y"
+        });
+    </script>
+    <script type="text/javascript">
+        function checkform() {
+            var docid = document.forms["myForm"]["docid"].value;
+            if (docid === "") {
+
+                return false;
+            }
+        }
+    </script>
+
+</body>
+
+</html>
+
+<?php
+} else {
+    header("Location:login.php");
+}
+?>
